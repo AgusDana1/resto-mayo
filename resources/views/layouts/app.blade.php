@@ -69,10 +69,140 @@
         .toast-animate {
             animation: slideDownFade 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+
+        /* Opening Scene Choreographed Animations */
+        @keyframes openingEmblemIn {
+            0% {
+                opacity: 0;
+                transform: translateY(-45px) scale(0.6);
+                filter: blur(8px);
+            }
+            70% {
+                opacity: 1;
+                transform: translateY(4px) scale(1.04);
+                filter: blur(0);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+        @keyframes openingRestoSlide {
+            0% {
+                opacity: 0;
+                transform: translateX(-50px);
+                filter: blur(6px);
+            }
+            70% {
+                opacity: 1;
+                transform: translateX(4px);
+                filter: blur(0);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+                filter: blur(0);
+            }
+        }
+        @keyframes openingMayoSlide {
+            0% {
+                opacity: 0;
+                transform: translateX(50px);
+                filter: blur(6px);
+            }
+            70% {
+                opacity: 1;
+                transform: translateX(-4px);
+                filter: blur(0);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+                filter: blur(0);
+            }
+        }
+        @keyframes openingDividerExpand {
+            0% {
+                opacity: 0;
+                transform: scaleX(0);
+            }
+            100% {
+                opacity: 1;
+                transform: scaleX(1);
+            }
+        }
+        @keyframes openingTaglineRise {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+                letter-spacing: 0.05em;
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+                letter-spacing: 0.22em;
+            }
+        }
+        @keyframes openingPillFade {
+            0% {
+                opacity: 0;
+                transform: translateY(14px) scale(0.92);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        @keyframes openingBarFill {
+            0% {
+                width: 0%;
+            }
+            100% {
+                width: 100%;
+            }
+        }
+        @keyframes openingAuraPulse {
+            0%, 100% {
+                transform: scale(0.95);
+                opacity: 0.25;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.6;
+            }
+        }
+
+        .anim-opening-emblem {
+            animation: openingEmblemIn 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+        }
+        .anim-opening-resto {
+            animation: openingRestoSlide 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.45s both;
+        }
+        .anim-opening-mayo {
+            animation: openingMayoSlide 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.45s both;
+        }
+        .anim-opening-divider {
+            animation: openingDividerExpand 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.75s both;
+        }
+        .anim-opening-tagline {
+            animation: openingTaglineRise 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.95s both;
+        }
+        .anim-opening-pill {
+            animation: openingPillFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) 1.2s both;
+        }
+        .anim-opening-bar {
+            animation: openingBarFill 0.75s ease-out 1.25s both;
+        }
+        .anim-opening-aura {
+            animation: openingAuraPulse 3s ease-in-out infinite;
+        }
     </style>
     @stack('styles')
 </head>
-<body class="bg-white min-h-screen flex flex-col font-sans text-gray-800 antialiased selection:bg-resto-red-800 selection:text-white">
+<body class="bg-white min-h-screen flex flex-col font-sans text-gray-800 antialiased selection:bg-resto-red-800 selection:text-white overflow-x-hidden">
+
+    @yield('opening_scene')
 
     @yield('content')
 
