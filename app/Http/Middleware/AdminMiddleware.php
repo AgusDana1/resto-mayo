@@ -16,8 +16,12 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (! Auth::check() || Auth::user()->role !== 'admin') {
-            abort(403);
+        if (! Auth::check()) {
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu untuk mengakses halaman admin.');
+        }
+
+        if (Auth::user()->role !== 'admin') {
+            abort(403, 'Akses ditolak. Anda tidak memiliki izin administrator.');
         }
 
         return $next($request);

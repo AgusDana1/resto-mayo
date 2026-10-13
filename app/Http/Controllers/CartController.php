@@ -32,15 +32,27 @@ class CartController extends Controller
      */
     public function add(Request $request, Product $product): JsonResponse|RedirectResponse
     {
-        $quantity = max(1, (int) $request->input('quantity', 1));
-        $notes = $request->input('notes');
+        if (! $product->is_available) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Menu {$product->name} saat ini sedang tidak tersedia atau habis.",
+                ], 422);
+            }
+
+            return redirect()->back()->with('error', "Menu {$product->name} saat ini sedang tidak tersedia atau habis.");
+        }
+
+        $quantity = max(1, min(99, (int) $request->input('quantity', 1)));
+        $rawNotes = $request->input('notes');
+        $notes = $rawNotes ? mb_substr(strip_tags(trim((string) $rawNotes)), 0, 255) : '';
 
         $cart = session('cart', []);
         $id = $product->id;
 
         if (isset($cart[$id])) {
-            $cart[$id]['quantity'] += $quantity;
-            if ($notes) {
+            $cart[$id]['quantity'] = min(99, $cart[$id]['quantity'] + $quantity);
+            if ($notes !== '') {
                 $cart[$id]['notes'] = $notes;
             }
         } else {
@@ -50,7 +62,7 @@ class CartController extends Controller
                 'price' => (float) $product->price,
                 'image' => $product->image,
                 'quantity' => $quantity,
-                'notes' => $notes ?? '',
+                'notes' => $notes,
             ];
         }
 
@@ -86,14 +98,14 @@ class CartController extends Controller
 
         if (isset($cart[$id])) {
             if ($action === 'increase') {
-                $cart[$id]['quantity'] += 1;
+                $cart[$id]['quantity'] = min(99, $cart[$id]['quantity'] + 1);
             } elseif ($action === 'decrease') {
                 $cart[$id]['quantity'] -= 1;
                 if ($cart[$id]['quantity'] <= 0) {
                     unset($cart[$id]);
                 }
             } elseif ($request->has('quantity')) {
-                $newQty = (int) $request->input('quantity');
+                $newQty = max(0, min(99, (int) $request->input('quantity')));
                 if ($newQty <= 0) {
                     unset($cart[$id]);
                 } else {
@@ -102,7 +114,7 @@ class CartController extends Controller
             }
 
             if ($request->has('notes') && isset($cart[$id])) {
-                $cart[$id]['notes'] = $request->input('notes');
+                $cart[$id]['notes'] = mb_substr(strip_tags(trim((string) $request->input('notes'))), 0, 255);
             }
 
             session(['cart' => $cart]);

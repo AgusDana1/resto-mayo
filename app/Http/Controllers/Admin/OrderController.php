@@ -16,6 +16,7 @@ class OrderController extends Controller
     public function index(Request $request): View
     {
         $search = $request->query('search');
+        $cleanSearch = $search ? mb_substr(strip_tags(trim(preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $search))), 0, 100) : null;
         $status = $request->query('status');
 
         $orders = Order::with([
@@ -23,10 +24,10 @@ class OrderController extends Controller
             'items.product',
             'payment',
         ])
-            ->when($search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('order_number', 'like', '%'.$search.'%')
-                        ->orWhere('customer_name', 'like', '%'.$search.'%');
+            ->when($cleanSearch, function ($query, $cleanSearch) {
+                $query->where(function ($q) use ($cleanSearch) {
+                    $q->where('order_number', 'like', '%'.$cleanSearch.'%')
+                        ->orWhere('customer_name', 'like', '%'.$cleanSearch.'%');
                 });
             })
             ->when($status, function ($query, $status) {

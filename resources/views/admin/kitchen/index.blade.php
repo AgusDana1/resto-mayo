@@ -100,6 +100,26 @@
                 @php
                     $durationMinutes = $order->created_at ? round(abs(now()->diffInMinutes($order->created_at))) : 0;
                     $isUrgent = $durationMinutes >= 20;
+
+                    if ($durationMinutes < 60) {
+                        $durationDisplay = ($durationMinutes < 1 ? 1 : $durationMinutes) . ' mnt lalu';
+                    } elseif ($durationMinutes < 1440) {
+                        $hours = floor($durationMinutes / 60);
+                        $remainingMinutes = $durationMinutes % 60;
+                        if ($remainingMinutes > 0) {
+                            $durationDisplay = "{$hours} jam {$remainingMinutes} mnt lalu";
+                        } else {
+                            $durationDisplay = "{$hours} jam lalu";
+                        }
+                    } else {
+                        $days = floor($durationMinutes / 1440);
+                        $remainingHours = floor(($durationMinutes % 1440) / 60);
+                        if ($remainingHours > 0) {
+                            $durationDisplay = "{$days} hari {$remainingHours} jam lalu";
+                        } else {
+                            $durationDisplay = "{$days} hari lalu";
+                        }
+                    }
                 @endphp
 
                 <!-- KDS Order Ticket Card (Pure White with Distinct Status Accents) -->
@@ -123,11 +143,12 @@
 
                         <!-- Badge Durasi Tunggu -->
                         <div class="text-right">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold {{ $isUrgent ? 'bg-resto-red-100 text-resto-red-900 border border-resto-red-200 animate-pulse' : 'bg-white text-gray-600 border border-gray-200' }}">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold {{ $isUrgent ? 'bg-resto-red-100 text-resto-red-900 border border-resto-red-200 animate-pulse' : 'bg-white text-gray-600 border border-gray-200' }}"
+                                  title="{{ $order->created_at ? $order->created_at->format('d M Y, H:i') . ' WIB' : '' }}">
                                 <svg class="w-3 h-3 mr-1 text-resto-gold-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
-                                {{ $durationMinutes }} mnt lalu
+                                {{ $durationDisplay }}
                             </span>
                         </div>
                     </div>

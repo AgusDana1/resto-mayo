@@ -100,7 +100,7 @@
                                 <span class="text-2xl font-bold tracking-tight text-resto-red-900 font-poppins">Resto<span class="text-resto-gold-700">Mayo</span></span>
                                 <span class="inline-block w-2 h-2 rounded-full bg-resto-gold-600 animate-pulse"></span>
                             </div>
-                            <p class="text-[11px] font-medium uppercase tracking-wider text-gray-400">Admin Restaurant Portal</p>
+                            <p class="text-[11px] font-medium uppercase tracking-wider text-gray-400">Admin Restaurant</p>
                         </div>
                     </a>
                 </div>

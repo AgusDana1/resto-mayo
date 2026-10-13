@@ -17,10 +17,11 @@ class CategoryController extends Controller
     public function index(Request $request): View
     {
         $search = $request->query('search');
+        $cleanSearch = $search ? mb_substr(strip_tags(trim(preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $search))), 0, 100) : null;
 
         $categories = Category::withCount('products')
-            ->when($search, function ($query, $search) {
-                $query->where('name', 'like', '%'.$search.'%');
+            ->when($cleanSearch, function ($query, $cleanSearch) {
+                $query->where('name', 'like', '%'.$cleanSearch.'%');
             })
             ->latest()
             ->paginate(10)
@@ -56,7 +57,7 @@ class CategoryController extends Controller
             'name.unique' => 'Nama kategori ini sudah terdaftar.',
         ]);
 
-        $validated['name'] = trim($validated['name']);
+        $validated['name'] = strip_tags(trim($validated['name']));
 
         Category::create($validated);
 
@@ -108,7 +109,7 @@ class CategoryController extends Controller
             'name.unique' => 'Nama kategori ini sudah terdaftar.',
         ]);
 
-        $validated['name'] = trim($validated['name']);
+        $validated['name'] = strip_tags(trim($validated['name']));
 
         $category->update($validated);
 

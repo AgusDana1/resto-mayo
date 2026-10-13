@@ -18,14 +18,15 @@ class ProductController extends Controller
     public function index(Request $request): View
     {
         $search = $request->query('search');
+        $cleanSearch = $search ? mb_substr(strip_tags(trim(preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $search))), 0, 100) : null;
         $categoryId = $request->query('category_id');
         $status = $request->query('status');
 
         $products = Product::with('category')
-            ->when($search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', '%'.$search.'%')
-                        ->orWhere('description', 'like', '%'.$search.'%');
+            ->when($cleanSearch, function ($query, $cleanSearch) {
+                $query->where(function ($q) use ($cleanSearch) {
+                    $q->where('name', 'like', '%'.$cleanSearch.'%')
+                        ->orWhere('description', 'like', '%'.$cleanSearch.'%');
                 });
             })
             ->when($categoryId, function ($query, $categoryId) {
@@ -89,15 +90,32 @@ class ProductController extends Controller
                 'max:2048',
             ],
 
+            'image_url' => [
+                'nullable',
+                'url',
+                'max:1000',
+            ],
+
             'is_available' => [
                 'nullable',
                 'boolean',
             ],
+        ], [
+            'category_id.required' => 'Pilih salah satu kategori menu.',
+            'category_id.exists' => 'Kategori yang dipilih tidak valid.',
+            'name.required' => 'Nama produk menu wajib diisi.',
+            'price.required' => 'Harga produk wajib ditentukan.',
+            'price.numeric' => 'Harga harus berupa angka.',
+            'price.min' => 'Harga tidak boleh kurang dari 0.',
+            'image.image' => 'File yang diunggah harus berupa gambar.',
+            'image.mimes' => 'Format gambar harus jpg, jpeg, png, atau webp.',
+            'image.max' => 'Ukuran file gambar maksimal 2MB.',
+            'image_url.url' => 'Format link URL gambar tidak valid.',
         ]);
 
         /*
         |--------------------------------------------------------------------------
-        | Upload gambar
+        | Upload gambar atau gunakan Image URL
         |--------------------------------------------------------------------------
         */
 
@@ -105,13 +123,21 @@ class ProductController extends Controller
             $validated['image'] = $request
                 ->file('image')
                 ->store('products', 'public');
+        } elseif (! empty($request->input('image_url'))) {
+            $validated['image'] = $request->input('image_url');
         }
+        unset($validated['image_url']);
 
         /*
         |--------------------------------------------------------------------------
-        | Status ketersediaan
+        | Status ketersediaan & Sanitasi Input
         |--------------------------------------------------------------------------
         */
+
+        $validated['name'] = strip_tags(trim($validated['name']));
+        if (! empty($validated['description'])) {
+            $validated['description'] = strip_tags(trim($validated['description']));
+        }
 
         $validated['is_available'] = $request->boolean('is_available');
 
@@ -190,23 +216,40 @@ class ProductController extends Controller
                 'max:2048',
             ],
 
+            'image_url' => [
+                'nullable',
+                'url',
+                'max:1000',
+            ],
+
             'is_available' => [
                 'nullable',
                 'boolean',
             ],
+        ], [
+            'category_id.required' => 'Pilih salah satu kategori menu.',
+            'category_id.exists' => 'Kategori yang dipilih tidak valid.',
+            'name.required' => 'Nama produk menu wajib diisi.',
+            'price.required' => 'Harga produk wajib ditentukan.',
+            'price.numeric' => 'Harga harus berupa angka.',
+            'price.min' => 'Harga tidak boleh kurang dari 0.',
+            'image.image' => 'File yang diunggah harus berupa gambar.',
+            'image.mimes' => 'Format gambar harus jpg, jpeg, png, atau webp.',
+            'image.max' => 'Ukuran file gambar maksimal 2MB.',
+            'image_url.url' => 'Format link URL gambar tidak valid.',
         ]);
 
         /*
         |--------------------------------------------------------------------------
-        | Upload gambar baru
+        | Upload gambar baru atau update Image URL
         |--------------------------------------------------------------------------
         */
 
         if ($request->hasFile('image')) {
-
-            // Hapus gambar lama jika ada
+            // Hapus gambar lama jika ada di storage lokal
             if (
                 $product->image &&
+                ! str_starts_with($product->image, 'http') &&
                 Storage::disk('public')->exists($product->image)
             ) {
                 Storage::disk('public')->delete($product->image);
@@ -216,13 +259,21 @@ class ProductController extends Controller
             $validated['image'] = $request
                 ->file('image')
                 ->store('products', 'public');
+        } elseif (! empty($request->input('image_url'))) {
+            $validated['image'] = $request->input('image_url');
         }
+        unset($validated['image_url']);
 
         /*
         |--------------------------------------------------------------------------
-        | Status ketersediaan
+        | Status ketersediaan & Sanitasi Input
         |--------------------------------------------------------------------------
         */
+
+        $validated['name'] = strip_tags(trim($validated['name']));
+        if (! empty($validated['description'])) {
+            $validated['description'] = strip_tags(trim($validated['description']));
+        }
 
         $validated['is_available'] = $request->boolean('is_available');
 

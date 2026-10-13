@@ -27,16 +27,16 @@ Route::get('/menu', [MenuController::class, 'index'])->name('menu.index');
 
 Route::prefix('cart')->name('cart.')->group(function () {
     Route::get('/', [CartController::class, 'index'])->name('index');
-    Route::post('/add/{product}', [CartController::class, 'add'])->name('add');
+    Route::post('/add/{product}', [CartController::class, 'add'])->middleware('throttle:60,1')->name('add');
     Route::patch('/update/{product}', [CartController::class, 'update'])->name('update');
     Route::delete('/remove/{product}', [CartController::class, 'remove'])->name('remove');
     Route::post('/clear', [CartController::class, 'clear'])->name('clear');
 });
 
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
-Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
+Route::post('/checkout', [CheckoutController::class, 'process'])->middleware('throttle:15,1')->name('checkout.process');
 Route::get('/payment/{order}', [PaymentController::class, 'index'])->name('payment.show');
-Route::post('/payment/{order}/confirm', [PaymentController::class, 'confirm'])->name('payment.confirm');
+Route::post('/payment/{order}/confirm', [PaymentController::class, 'confirm'])->middleware('throttle:30,1')->name('payment.confirm');
 
 /*
 |--------------------------------------------------------------------------
@@ -44,36 +44,38 @@ Route::post('/payment/{order}/confirm', [PaymentController::class, 'confirm'])->
 |--------------------------------------------------------------------------
 */
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1')->name('login.post');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     /*
     |--------------------------------------------------------------------------
-    | Admin Panel Routes (Category, Product, Dashboard, Order, Kitchen)
+    | Admin Panel Routes (Dilindungi oleh AdminMiddleware)
     |--------------------------------------------------------------------------
     */
-    Route::get('/', function () {
-        return redirect()->route('admin.dashboard');
+    Route::middleware(['admin'])->group(function () {
+        Route::get('/', function () {
+            return redirect()->route('admin.dashboard');
+        });
+
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+        // Manajemen Kategori Makanan & Minuman
+        Route::resource('categories', CategoryController::class);
+
+        // Manajemen Produk
+        Route::resource('products', ProductController::class);
+
+        // Manajemen Pesanan
+        Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+        Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.status');
+
+        // Manajemen Dapur (Kitchen Display System)
+        Route::get('/kitchen', [KitchenController::class, 'index'])->name('kitchen.index');
+        Route::patch('/kitchen/{order}/status', [KitchenController::class, 'updateStatus'])->name('kitchen.status');
     });
-
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-    // Manajemen Kategori Makanan & Minuman
-    Route::resource('categories', CategoryController::class);
-
-    // Manajemen Produk
-    Route::resource('products', ProductController::class);
-
-    // Manajemen Pesanan
-    Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
-    Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
-    Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.status');
-
-    // Manajemen Dapur (Kitchen Display System)
-    Route::get('/kitchen', [KitchenController::class, 'index'])->name('kitchen.index');
-    Route::patch('/kitchen/{order}/status', [KitchenController::class, 'updateStatus'])->name('kitchen.status');
 });

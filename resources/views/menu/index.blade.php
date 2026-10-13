@@ -509,11 +509,16 @@
                     </div>
                     <div>
                         <p class="text-xs font-semibold ${isError ? 'text-red-800' : 'text-resto-gold-800'} uppercase tracking-wider">${isError ? 'Peringatan' : 'Berhasil'}</p>
-                        <p class="text-xs font-medium text-gray-700">${message}</p>
+                        <p class="text-xs font-medium text-gray-700 toast-body"></p>
                     </div>
                 </div>
                 <button type="button" onclick="this.parentElement.remove()" class="text-gray-400 hover:text-gray-600 p-1">&times;</button>
             `;
+
+            const toastBody = toast.querySelector('.toast-body');
+            if (toastBody) {
+                toastBody.textContent = message;
+            }
 
             container.appendChild(toast);
 
